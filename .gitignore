@@ -1,0 +1,39 @@
+# Node & Frontend build
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Python & Backend
+venv/
+backend/venv/
+__pycache__/
+backend/__pycache__/
+backend/*/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+backend/.pytest_cache/
+
+# Databases
+*.db
+backend/*.db
+
+# Uploads (preserve .gitkeep)
+uploads/*
+!uploads/.gitkeep
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Environment variables
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
