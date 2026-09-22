@@ -19,8 +19,13 @@ if DATABASE_URL.startswith("sqlite"):
 engine = create_engine(
     DATABASE_URL,
     connect_args=connect_args,
-    pool_pre_ping=True
+    pool_pre_ping=True,
+    pool_recycle=300
 )
+
+# Safe host logging for deployment troubleshooting (never logs credentials)
+if engine.url.host:
+    print(f"[Database] Configured target host: {engine.url.host}")
 
 # Enable foreign key constraints for SQLite
 if DATABASE_URL.startswith("sqlite"):
