@@ -1,3 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 fastapi==0.110.0
 uvicorn[standard]==0.28.0
 
@@ -15,8 +17,14 @@ bcrypt==4.0.1
 python-multipart==0.0.9
 pillow==10.2.0
 
-torch==2.2.2+cpu
-torchvision==0.17.2+cpu
+# Linux (Render 512 MB Free tier): CPU-only wheels to avoid ~800MB CUDA bloat
+torch==2.2.2+cpu; sys_platform == 'linux'
+torchvision==0.17.2+cpu; sys_platform == 'linux'
+
+# Local development (macOS Apple Silicon / Windows): Standard CPU/MPS wheels
+torch==2.2.2; sys_platform != 'linux'
+torchvision==0.17.2; sys_platform != 'linux'
 
 python-dotenv==1.0.1
 httpx==0.27.0
+pytest>=8.1.1

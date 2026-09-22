@@ -21,6 +21,7 @@ class ImageClassifier:
 
     def _load_model(self):
         try:
+            import gc
             import torch
             from torchvision.models import resnet50, ResNet50_Weights
 
@@ -29,6 +30,11 @@ class ImageClassifier:
                 self.device = "mps"
             else:
                 self.device = "cpu"
+
+            # Restrict PyTorch CPU threads to avoid memory pool bloat on multi-core host
+            if self.device == "cpu":
+                torch.set_num_threads(1)
+                torch.set_num_interop_threads(1)
 
             weights = ResNet50_Weights.DEFAULT
             self.model = resnet50(weights=weights)
@@ -42,10 +48,16 @@ class ImageClassifier:
             for idx, raw_label in enumerate(self.categories):
                 self.taxonomy_cache[idx] = get_taxonomy_for_index(idx, raw_label)
 
+            # Free weights metadata/unpickled dict from memory immediately
+            del weights
+            gc.collect()
+
             # Pre-warm GPU/CPU kernels with dummy forward pass so 1st inference has zero cold-start delay
             with torch.inference_mode():
                 dummy = torch.zeros(1, 3, 224, 224, device=self.device)
                 self.model(dummy)
+                del dummy
+            gc.collect()
 
             self._is_ready = True
             print(f"[ImageClassifier] ResNet-50 loaded and warmed up successfully on {self.device.upper()} with 1000-class hierarchical taxonomy.")
@@ -103,6 +115,9 @@ class ImageClassifier:
                 top_probs, top_indices = torch.topk(probabilities, 15)
                 top_probs_list = top_probs.cpu().tolist()
                 top_indices_list = top_indices.cpu().tolist()
+
+                # Immediately release intermediate PyTorch tensors
+                del tensor, logits, probabilities, top_probs, top_indices
 
                 top_predictions = []
                 for prob, idx in zip(top_probs_list, top_indices_list):
@@ -344,6 +359,9 @@ class ImageClassifier:
         ]
         if is_unknown:
             features.append("Low Confidence Flag")
+
+        import gc
+        gc.collect()
 
         return {
             "success": True,

@@ -81,7 +81,8 @@ def run_checks():
     print(f"  - Top 3 Alternatives: {[a['name'] for a in result['alternatives'][:3]]}")
 
     print("\n--- 8. Testing Uploaded Image Serving ---")
-    img_fetch = httpx.get(f"{BASE_URL}{result['image_url']}")
+    fetch_url = result['image_url'] if result['image_url'].startswith("http") else f"{BASE_URL}{result['image_url']}"
+    img_fetch = httpx.get(fetch_url)
     assert img_fetch.status_code == 200
     assert len(img_fetch.content) > 0
     print(f"✓ Uploaded image correctly served ({len(img_fetch.content)} bytes)")

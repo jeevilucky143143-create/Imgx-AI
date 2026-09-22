@@ -97,7 +97,11 @@ def run_integration_tests():
 
     # Flow 7: Uploaded Image Serving
     print("\n--- 7. Testing Uploaded Image Serving ---")
-    img_fetch = client.get(result["image_url"])
+    if result["image_url"].startswith("http"):
+        import httpx
+        img_fetch = httpx.get(result["image_url"])
+    else:
+        img_fetch = client.get(result["image_url"])
     assert img_fetch.status_code == 200
     assert len(img_fetch.content) > 0
     print(f"✓ Uploaded image correctly served ({len(img_fetch.content)} bytes)")
